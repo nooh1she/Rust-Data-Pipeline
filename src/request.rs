@@ -1,5 +1,18 @@
 use reqwest::Client;
+use serde::Deserialize;
 use std::error::Error;
+
+#[derive(Debug, Deserialize)]
+struct Forecast {
+    date: String,
+    dateLabel: String,
+    telop: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct ZipCloudResponse {
+    forecasts: Vec<Forecast>,
+}
 
 pub async fn request(city: &str) -> Result<(), Box<dyn Error>> {
     let client = Client::new();
@@ -9,7 +22,7 @@ pub async fn request(city: &str) -> Result<(), Box<dyn Error>> {
         .query(&[("city", city)])
         .send()
         .await?;
-    let body = response.text().await?;
-    println!("{}", body);
+    let body = response.json::<ZipCloudResponse>().await?;
+    println!("{:?}", body);
     Ok(())
 }
